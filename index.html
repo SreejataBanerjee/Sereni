@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sereni - Mental Health Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="side-image left">
+            <img src="{{ url_for('static', filename='images/left.jpeg') }}" alt="Calm Image">
+        </div>
+        
+        <div class="chat-container">
+            <h1 class="chat-title">Sereni</h1>
+            <div class="chat-box" id="chat-box">
+                <!-- Messages will be added dynamically here -->
+            </div>
+            <div class="input-area">
+                <input type="text" id="user-input" placeholder="Type your message..." autocomplete="off">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+        
+        <div class="side-image right">
+            <img src="{{ url_for('static', filename='images/right.jpeg') }}" alt="Calm Image">
+        </div>
+    </div>
+
+    <script>
+        // Function to append messages
+        function appendMessage(sender, message) {
+            let chatBox = document.getElementById("chat-box");
+            let messageDiv = document.createElement("div");
+            messageDiv.className = sender === "User" ? "chat-message user-message" : "chat-message bot-message";
+            messageDiv.textContent = message;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;  // Auto-scroll to latest message
+        }
+
+        // Function to send user message
+        function sendMessage() {
+            let inputField = document.getElementById("user-input");
+            let message = inputField.value.trim();
+            if (message === "") return;
+
+            appendMessage("User", message);
+            inputField.value = "";  // Clear input field
+
+            fetch("http://localhost:5000/chat", {  // Change if hosted elsewhere
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                appendMessage("AI", data.response);
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                appendMessage("AI", "Error: Unable to reach server");
+            });
+        }
+
+        // Send message when Enter key is pressed
+        document.getElementById("user-input").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
